@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+
+	"github.com/yitsushi/bugsnag-release-monitor/pkg/bugsnag"
 )
 
 func main() {
@@ -41,7 +43,7 @@ func main() {
 		log.Fatalln("'project-name' or 'project-report-api-key' is not defined.")
 	}
 
-	bugsnagClient := NewClient(apiToken)
+	bugsnagClient := bugsnag.NewClient(apiToken)
 
 	orgID := findOrganizationID(bugsnagClient, targetOrgName)
 	if orgID == "" {
@@ -59,7 +61,7 @@ func main() {
 	generateReport(errorList, compact)
 }
 
-func findOrganizationID(bugsnagClient *Client, target string) string {
+func findOrganizationID(bugsnagClient *bugsnag.Client, target string) string {
 	orgs := bugsnagClient.ListOrganizations()
 	for _, org := range orgs {
 		if org.Name == target {
@@ -70,7 +72,7 @@ func findOrganizationID(bugsnagClient *Client, target string) string {
 	return ""
 }
 
-func findProjectID(bugsnagClient *Client, orgID, targetKey, targetName string) string {
+func findProjectID(bugsnagClient *bugsnag.Client, orgID, targetKey, targetName string) string {
 	projects := bugsnagClient.ListProjectsForOrganization(orgID)
 	for _, project := range projects {
 		if project.APIKey == targetKey || project.Name == targetName {
@@ -81,8 +83,8 @@ func findProjectID(bugsnagClient *Client, orgID, targetKey, targetName string) s
 	return ""
 }
 
-func createFilters(version string) *FilterParameter {
-	filters := NewFilterParameter()
+func createFilters(version string) *bugsnag.FilterParameter {
+	filters := bugsnag.NewFilterParameter()
 	filters.Add("app.release_stage", "eq", "production")
 	filters.Add("release.seen_in", "eq", version)
 	filters.Add("event.since", "eq", "1d")
@@ -91,7 +93,7 @@ func createFilters(version string) *FilterParameter {
 	return filters
 }
 
-func generateReport(errorList []*Error, compact bool) {
+func generateReport(errorList []*bugsnag.Error, compact bool) {
 	for _, reported := range errorList {
 		if compact {
 			fmt.Printf("[%5d] %s: %s\n", reported.Events, reported.ErrorClass, reported.Context)

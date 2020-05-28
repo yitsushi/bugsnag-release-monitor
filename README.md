@@ -22,16 +22,22 @@ Usage of ./bin/bugsnag-release-monitor:
 
 ## How to use as a lib?
 
-```
-import "github.com/yitsushi/bugsnag-release-monitor"
+```go
+package main
 
-bugsnagClient := monitor.NewClient(apiToken)
+import "github.com/yitsushi/bugsnag-release-monitor/pkg/bugsnag"
 
-filters := monitor.NewFilterParameter()
-filters.Add("app.release_stage", "eq", "production")
-filters.Add("release.seen_in", "eq", "myVersion")
-filters.Add("event.since", "eq", "3h")
-filters.Add("error.status", "eq", "open")
+func main() {
+      bugsnagClient := bugsnag.NewClient(apiToken)
 
-errorList := bugsnagClient.ListErrorsForProject(projectID, filters)
+      filters := bugsnag.NewFilterParameter()
+      filters.Add("app.release_stage", "eq", "production")
+      filters.Add("release.seen_in", "eq", "myVersion")
+      filters.Add("event.since", "eq", "3h")
+      filters.Add("error.status", "eq", "open")
+
+      errorList := bugsnagClient.ListErrorsForProject(projectID, filters)
+
+      // do whatever you want with this list
+}
 ```
