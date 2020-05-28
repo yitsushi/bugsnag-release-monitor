@@ -7,22 +7,21 @@ import (
 )
 
 func main() {
-	var targetOrgName string
-	var targetProjectAPIKey string
-	var targetProjectName string
-	var apiToken string
-	var version string
-	var compact bool
+	var (
+		targetOrgName       string
+		targetProjectAPIKey string
+		targetProjectName   string
+		apiToken            string
+		version             string
+		compact             bool
+	)
 
-	var orgID string
-	var projectID string
-
-	flag.StringVar(&targetOrgName, "org-name", "","Name of the Organization")
-	flag.StringVar(&targetProjectAPIKey, "project-report-api-key", "","Reporting API Key of the Project")
-	flag.StringVar(&targetProjectName, "project-name", "","Name of the Project")
-	flag.StringVar(&apiToken, "api-token", "","API Token (authentication)")
-	flag.StringVar(&version, "release-version", "","Release version")
-	flag.BoolVar(&compact, "compact", false,"Compact view")
+	flag.StringVar(&targetOrgName, "org-name", "", "Name of the Organization")
+	flag.StringVar(&targetProjectAPIKey, "project-report-api-key", "", "Reporting API Key of the Project")
+	flag.StringVar(&targetProjectName, "project-name", "", "Name of the Project")
+	flag.StringVar(&apiToken, "api-token", "", "API Token (authentication)")
+	flag.StringVar(&version, "release-version", "", "Release version")
+	flag.BoolVar(&compact, "compact", false, "Compact view")
 
 	flag.Parse()
 
@@ -44,38 +43,55 @@ func main() {
 
 	bugsnagClient := NewClient(apiToken)
 
-	orgs := bugsnagClient.ListOrganizations()
-	for _, org := range orgs {
-		if org.Name == targetOrgName {
-			orgID = org.ID
-			break
-		}
-	}
+	orgID := findOrganizationID(bugsnagClient, targetOrgName)
 	if orgID == "" {
 		fmt.Println("Organization not found!")
 		return
 	}
 
-	projects := bugsnagClient.ListProjectsForOrganization(orgID)
-	for _, project := range projects {
-		if project.APIKey == targetProjectAPIKey {
-			projectID = project.ID
-			break
-		}
-	}
+	projectID := findProjectID(bugsnagClient, orgID, targetProjectAPIKey, targetProjectName)
 	if projectID == "" {
 		fmt.Println("Project not found!")
 		return
 	}
 
+	errorList := bugsnagClient.ListErrorsForProject(projectID, createFilters(version))
+	generateReport(errorList, compact)
+}
+
+func findOrganizationID(bugsnagClient *Client, target string) string {
+	orgs := bugsnagClient.ListOrganizations()
+	for _, org := range orgs {
+		if org.Name == target {
+			return org.ID
+		}
+	}
+
+	return ""
+}
+
+func findProjectID(bugsnagClient *Client, orgID, targetKey, targetName string) string {
+	projects := bugsnagClient.ListProjectsForOrganization(orgID)
+	for _, project := range projects {
+		if project.APIKey == targetKey || project.Name == targetName {
+			return project.ID
+		}
+	}
+
+	return ""
+}
+
+func createFilters(version string) *FilterParameter {
 	filters := NewFilterParameter()
 	filters.Add("app.release_stage", "eq", "production")
 	filters.Add("release.seen_in", "eq", version)
 	filters.Add("event.since", "eq", "1d")
 	filters.Add("error.status", "eq", "open")
 
-	errorList := bugsnagClient.ListErrorsForProject(projectID, filters)
+	return filters
+}
 
+func generateReport(errorList []*Error, compact bool) {
 	for _, reported := range errorList {
 		if compact {
 			fmt.Printf("[%5d] %s: %s\n", reported.Events, reported.ErrorClass, reported.Context)

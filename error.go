@@ -2,6 +2,7 @@ package main
 
 import "time"
 
+// CreatedIssue is a nested struct for Error.
 type CreatedIssue struct {
 	ID   string `json:"id"`
 	Key  string `json:"key"`
@@ -9,12 +10,14 @@ type CreatedIssue struct {
 	URL  string `json:"url"`
 }
 
+// GroupingFields is a nested struct for Error.
 type GroupingFields struct {
 	ErrorClass string `json:"errorClass"`
 	File       string `json:"file"`
 	LineNumber int    `json:"lineNumber"`
 }
 
+// Error represents the response from the list errors endpoint.
 type Error struct {
 	AssignedCollaboratorID     string         `json:"assigned_collaborator_id"`
 	CommentCount               int            `json:"comment_count"`

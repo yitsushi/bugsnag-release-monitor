@@ -8,16 +8,23 @@ import (
 	"time"
 )
 
-type client struct {
+// Client holds things together.
+type Client struct {
 	*http.Client
 	APIKey string
 }
 
-func NewClient(key string) *client {
-	return &client{&http.Client{Timeout: 10 * time.Second}, key}
+const (
+	timeout = 10
+)
+
+// NewClient creates a new client with given API Token.
+func NewClient(key string) *Client {
+	return &Client{&http.Client{Timeout: timeout * time.Second}, key}
 }
 
-func (c *client) ListErrorsForProject(projectID string, filters *FilterParameter) []*Error {
+// ListErrorsForProject lists all errors for a project with defined filters.
+func (c *Client) ListErrorsForProject(projectID string, filters *FilterParameter) []*Error {
 	var errorList []*Error
 
 	path := fmt.Sprintf(
@@ -28,7 +35,8 @@ func (c *client) ListErrorsForProject(projectID string, filters *FilterParameter
 	return errorList
 }
 
-func (c *client) ListProjectsForOrganization(organizationID string) []*Project {
+// ListProjectsForOrganization lists all projects for an organization.
+func (c *Client) ListProjectsForOrganization(organizationID string) []*Project {
 	var projects []*Project
 
 	path := fmt.Sprintf("/organizations/%s/projects", organizationID)
@@ -37,17 +45,21 @@ func (c *client) ListProjectsForOrganization(organizationID string) []*Project {
 	return projects
 }
 
-func (c *client) ListOrganizations() []*Organization {
+// ListOrganizations lists all organizations for the user (API Token).
+func (c *Client) ListOrganizations() []*Organization {
 	var orgs []*Organization
+
 	c.Get("/user/organizations", &orgs)
 
 	return orgs
 }
 
-func (c *client) Send(req *http.Request) *http.Response {
-	req.Header.Set("Authorization", "token " + c.APIKey)
+// Send appds some extra required header information on and sends out the request.
+func (c *Client) Send(req *http.Request) *http.Response {
+	req.Header.Set("Authorization", "token "+c.APIKey)
 	req.Header.Set("X-Version", "2")
 	response, err := c.Do(req)
+
 	if err != nil {
 		panic(err)
 	}
@@ -55,7 +67,8 @@ func (c *client) Send(req *http.Request) *http.Response {
 	return response
 }
 
-func (c *client) Get(path string, parseTo interface{}) {
+// Get repares and sends a GET request.
+func (c *Client) Get(path string, parseTo interface{}) {
 	baseURL := "https://api.bugsnag.com"
 	url := fmt.Sprintf("%s%s", baseURL, path)
 
@@ -67,10 +80,12 @@ func (c *client) Get(path string, parseTo interface{}) {
 	response := c.Send(req)
 	defer response.Body.Close()
 
-	json.NewDecoder(response.Body).Decode(parseTo)
+	_ = json.NewDecoder(response.Body).Decode(parseTo)
 }
 
-func (c *client) Post(path string, payload []byte, parseTo interface{}) {
+// Post repares and sends a POST request.
+//   Caution: Maybe works, maybe not.
+func (c *Client) Post(path string, payload []byte, parseTo interface{}) {
 	baseURL := "https://api.bugsnag.com"
 	url := fmt.Sprintf("%s%s", baseURL, path)
 
@@ -88,5 +103,5 @@ func (c *client) Post(path string, payload []byte, parseTo interface{}) {
 	fmt.Println(response)
 	defer response.Body.Close()
 
-	json.NewDecoder(response.Body).Decode(parseTo)
+	_ = json.NewDecoder(response.Body).Decode(parseTo)
 }
