@@ -2,6 +2,8 @@
 
 List errors for given version for development.
 
+Requirements:
+ - API Token for Bugsnag: https://app.bugsnag.com/settings/your-org/my-account/auth-tokens
 
 ```
 ❯ bugsnag-release-monitor -help
