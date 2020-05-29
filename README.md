@@ -22,6 +22,28 @@ Usage of bugsnag-release-monitor:
         Report since... (default "3h")
 ```
 
+or with Docker:
+
+```
+docker run --rm yitsushi/bugsnag-release-monitor -help
+❯ docker run --rm yitsushi/bugsnag-release-monitor -help
+Usage of /github-pr-creator:
+  -api-token string
+        API Token (authentication)
+  -compact
+        Compact view
+  -org-name string
+        Name of the Organization
+  -project-name string
+        Name of the Project
+  -project-report-api-key string
+        Reporting API Key of the Project
+  -release-version string
+        Release version
+  -since string
+        Report since... (default "3h")
+```
+
 ## How to use as a lib?
 
 ```go
