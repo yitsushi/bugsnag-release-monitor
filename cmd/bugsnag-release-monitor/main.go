@@ -15,6 +15,7 @@ func main() {
 		targetProjectName   string
 		apiToken            string
 		version             string
+		since               string
 		compact             bool
 	)
 
@@ -22,6 +23,7 @@ func main() {
 	flag.StringVar(&targetProjectAPIKey, "project-report-api-key", "", "Reporting API Key of the Project")
 	flag.StringVar(&targetProjectName, "project-name", "", "Name of the Project")
 	flag.StringVar(&apiToken, "api-token", "", "API Token (authentication)")
+	flag.StringVar(&since, "since", "3h", "Report since...")
 	flag.StringVar(&version, "release-version", "", "Release version")
 	flag.BoolVar(&compact, "compact", false, "Compact view")
 
@@ -57,7 +59,7 @@ func main() {
 		return
 	}
 
-	errorList := bugsnagClient.ListErrorsForProject(projectID, createFilters(version))
+	errorList := bugsnagClient.ListErrorsForProject(projectID, createFilters(version, since))
 	generateReport(errorList, compact)
 }
 
@@ -83,11 +85,11 @@ func findProjectID(bugsnagClient *bugsnag.Client, orgID, targetKey, targetName s
 	return ""
 }
 
-func createFilters(version string) *bugsnag.FilterParameter {
+func createFilters(version, since string) *bugsnag.FilterParameter {
 	filters := bugsnag.NewFilterParameter()
 	filters.Add("app.release_stage", "eq", "production")
 	filters.Add("release.seen_in", "eq", version)
-	filters.Add("event.since", "eq", "1d")
+	filters.Add("event.since", "eq", since)
 	filters.Add("error.status", "eq", "open")
 
 	return filters

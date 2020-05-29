@@ -4,8 +4,8 @@ List errors for given version for development.
 
 
 ```
-❯ ./bin/bugsnag-release-monitor -help
-Usage of ./bin/bugsnag-release-monitor:
+❯ bugsnag-release-monitor -help
+Usage of bugsnag-release-monitor:
   -api-token string
         API Token (authentication)
   -compact
@@ -18,6 +18,8 @@ Usage of ./bin/bugsnag-release-monitor:
         Reporting API Key of the Project
   -release-version string
         Release version
+  -since string
+        Report since... (default "3h")
 ```
 
 ## How to use as a lib?
